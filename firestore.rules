@@ -1,0 +1,97 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: Verify if user ID is basic and safe
+    function isValidId(id) {
+       return id is string && id.size() > 0 && id.size() <= 128;
+    }
+
+    // Helper: Check if logged in and accessing own data
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Helper: Safe user data validation
+    function isValidUser(data) {
+      return data.keys().hasAll(['userId', 'fullName', 'email', 'createdAt'])
+        && data.userId == request.auth.uid
+        && data.fullName is string && data.fullName.size() > 0 && data.fullName.size() <= 128
+        && data.email is string && data.email.size() > 0 && data.email.size() <= 128;
+    }
+
+    // Helper: Safe access log data validation
+    function isValidAccessLog(data) {
+      return data.keys().hasAll(['id', 'action', 'timestamp', 'status'])
+        && data.id is string && data.id.size() > 0 && data.id.size() <= 128
+        && data.action is string && data.action.size() > 0 && data.action.size() <= 128
+        && data.status is string && data.status.size() > 0 && data.status.size() <= 128;
+    }
+
+    // Helper: Safe consultation request data validation
+    function isValidConsultation(data) {
+      return data.keys().hasAll(['id', 'fullName', 'email', 'service', 'message', 'timestamp', 'status'])
+        && data.id is string && data.id.size() > 0 && data.id.size() <= 128
+        && data.fullName is string && data.fullName.size() > 0 && data.fullName.size() <= 128
+        && data.email is string && data.email.size() > 0 && data.email.size() <= 128
+        && data.service is string && data.service.size() > 0 && data.service.size() <= 128
+        && data.message is string && data.message.size() > 0 && data.message.size() <= 2048
+        && data.status is string && (data.status == 'Pendente' || data.status == 'Análise Iniciada' || data.status == 'Agendado');
+    }
+
+    // Helper: Safe CRM Lead data validation
+    function isValidCRMLead(data) {
+      return data.keys().hasAll(['id', 'name', 'email', 'value', 'stage', 'updatedAt'])
+        && data.id is string && data.id.size() > 0 && data.id.size() <= 128
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 128
+        && data.email is string && data.email.size() > 0 && data.email.size() <= 128
+        && data.stage is string && (data.stage == 'Novo' || data.stage == 'Contato' || data.stage == 'Proposta' || data.stage == 'Ganho' || data.stage == 'Perdido');
+    }
+
+    // Helper: Safe CRM Task data validation
+    function isValidCRMTask(data) {
+      return data.keys().hasAll(['id', 'description', 'dueDate', 'completed', 'createdAt'])
+        && data.id is string && data.id.size() > 0 && data.id.size() <= 128
+        && data.description is string && data.description.size() > 0 && data.description.size() <= 512
+        && data.dueDate is string && data.dueDate.size() > 0 && data.dueDate.size() <= 128
+        && data.completed is bool;
+    }
+
+    // Main collection path: Users
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) && isValidId(userId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUser(request.resource.data);
+
+      // Subcollection: Access Log
+      match /accesses/{accessId} {
+        allow read, write: if isOwner(userId) && isValidId(userId) && isValidId(accessId);
+        allow create: if isOwner(userId) && isValidId(userId) && isValidId(accessId) && isValidAccessLog(request.resource.data);
+      }
+
+      // Subcollection: Consultations
+      match /consultations/{consultationId} {
+        allow read, write: if isOwner(userId) && isValidId(userId) && isValidId(consultationId);
+        allow create: if isOwner(userId) && isValidId(userId) && isValidId(consultationId) && isValidConsultation(request.resource.data);
+        allow update: if isOwner(userId) && isValidId(userId) && isValidId(consultationId) && isValidConsultation(request.resource.data);
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(consultationId);
+      }
+
+      // Subcollection: CRM Leads
+      match /crmLeads/{leadId} {
+        allow read, write: if isOwner(userId) && isValidId(userId) && isValidId(leadId);
+        allow create: if isOwner(userId) && isValidId(userId) && isValidId(leadId) && isValidCRMLead(request.resource.data);
+        allow update: if isOwner(userId) && isValidId(userId) && isValidId(leadId) && isValidCRMLead(request.resource.data);
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(leadId);
+      }
+
+      // Subcollection: CRM Tasks
+      match /crmTasks/{taskId} {
+        allow read, write: if isOwner(userId) && isValidId(userId) && isValidId(taskId);
+        allow create: if isOwner(userId) && isValidId(userId) && isValidId(taskId) && isValidCRMTask(request.resource.data);
+        allow update: if isOwner(userId) && isValidId(userId) && isValidId(taskId) && isValidCRMTask(request.resource.data);
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(taskId);
+      }
+    }
+  }
+}

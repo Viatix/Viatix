@@ -1,0 +1,183 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Store professional user accounts info",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique user ID matching auth.uid"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Full name of the user"
+        },
+        "email": {
+          "type": "string",
+          "description": "Corporate email address"
+        },
+        "companyName": {
+          "type": "string",
+          "description": "Company name of the client"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when account was created"
+        }
+      },
+      "required": ["userId", "fullName", "email", "createdAt"]
+    },
+    "AccessLog": {
+      "title": "Access Log",
+      "description": "Log when a user logs in, logs out, or performs critical operations",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique log ID"
+        },
+        "action": {
+          "type": "string",
+          "description": "Action performed: 'Login' or 'Logout' or 'Register'"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp string of the action"
+        },
+        "userAgent": {
+          "type": "string",
+          "description": "Browser user agent info"
+        },
+        "status": {
+          "type": "string",
+          "description": "Success or Failure"
+        }
+      },
+      "required": ["id", "action", "timestamp", "status"]
+    },
+    "ConsultationRequest": {
+      "title": "Consultation Request",
+      "description": "Store technical and commercial IT consulting proposals",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique proposal ID"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Client full name"
+        },
+        "email": {
+          "type": "string",
+          "description": "Lead email"
+        },
+        "service": {
+          "type": "string",
+          "description": "Selected service tier/title"
+        },
+        "message": {
+          "type": "string",
+          "description": "Client message or description of needs"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp string when requested"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Pendente", "Análise Iniciada", "Agendado"]
+        }
+      },
+      "required": ["id", "fullName", "email", "service", "message", "timestamp", "status"]
+    },
+    "CRMLead": {
+      "title": "CRM Lead",
+      "description": "Individual client lead tracked in the user's micro-CRM pipeline",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "company": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number"
+        },
+        "stage": {
+          "type": "string",
+          "enum": ["Novo", "Contato", "Proposta", "Ganho", "Perdido"]
+        },
+        "service": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "name", "email", "value", "stage", "updatedAt"]
+    },
+    "CRMTask": {
+      "title": "CRM Task",
+      "description": "Follow-up tasks associated with leads or general operations",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "leadId": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "dueDate": {
+          "type": "string"
+        },
+        "completed": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "description", "dueDate", "completed", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Main user accounts node"
+    },
+    "/users/{userId}/accesses/{accessId}": {
+      "schema": "AccessLog",
+      "description": "Detailed log history tracking authentication attempts"
+    },
+    "/users/{userId}/consultations/{consultationId}": {
+      "schema": "ConsultationRequest",
+      "description": "Durable collection storing technical consultation agreements"
+    },
+    "/users/{userId}/crmLeads/{leadId}": {
+      "schema": "CRMLead",
+      "description": "User specific CRM leads and client opportunities"
+    },
+    "/users/{userId}/crmTasks/{taskId}": {
+      "schema": "CRMTask",
+      "description": "Follow-up schedule for CRM leads and general outreach tasks"
+    }
+  }
+}

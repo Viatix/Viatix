@@ -1,0 +1,6 @@
+{
+  "name": "Viatix",
+  "description": "Impulsionando o Futuro Digital com Soluções de TI sob Medida. Tecnologia de precisão em computação em nuvem, cibersegurança e infraestrutura.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
